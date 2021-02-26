@@ -1,0 +1,6 @@
+# ignore everything except .gitignore
+*
+!.gitignore
+!with_out_domain
+!with_out_domain/conf.d
+!with_out_domain/conf.d/default.conf

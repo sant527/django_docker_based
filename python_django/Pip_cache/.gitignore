@@ -1,0 +1,7 @@
+# ignore everything except .gitignore
+*
+!.gitignore
+!.cache
+!.cache/pip
+!.cache/000_DO_NO_DELETE_KEEP_FOR_GIT_TO_RETAIN_EMPTY_FOLDER
+!.cache/pip/000_DO_NO_DELETE_KEEP_FOR_GIT_TO_RETAIN_EMPTY_FOLDER

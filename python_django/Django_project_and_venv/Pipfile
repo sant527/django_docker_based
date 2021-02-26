@@ -1,0 +1,27 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+jupyter = "*"
+ipython = "*"
+django-extensions = "*"
+werkzeug = "*"
+
+[packages]
+psycopg2 = "*"
+django-heroku = "*"
+gunicorn = "*"
+djangorestframework = "*"
+Django = "3.0.6"
+celery = "4.4.7"
+redis = "3.3.11"
+django-request-logging = "*"
+django-bootstrap4 = "*"
+requests = "*"
+pandas = "*"
+plotly = "*"
+
+[requires]
+python_version = "3.7"

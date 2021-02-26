@@ -1,0 +1,220 @@
+# My version of docker = 18.09.4-ce
+# Compose file format supported till version 18.06.0+ is 3.7
+version: "3.7"
+services:
+
+  # ## Postgresl command
+  # $ docker run \
+  #     --rm \
+  #     --name some-postgres \
+  #     -e POSTGRES_PASSWORD=krishna \
+  #     -e PGDATA=/var/lib/postgresql/data/pgdata \
+  #     -v /home/web_dev/DO_NOT_DELETE_Docker_django_testing/postgresql:/var/lib/postgresql/data \
+  #     postgres:11-alpine
+
+  # change the DATABASE_URL=psql://POSTGRES_USER:POSTGRES_PASSWORD@SERVICE_NAME:5432/POSTGRES_DB in .evn file in the django project folder
+  # DATABASE_URL=psql://testing:testing@postgresql:5432/testing
+
+  postgresql:
+    image: "postgres:11-alpine"
+    volumes:
+      - type: bind
+        source: ../DO_NOT_DELETE_postgres_data
+        target: /var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: 'simha' # this is optional because default it posstgres
+      POSTGRES_PASSWORD: 'krishna'
+      POSTGRES_DB: 'gauranga' # this is optional because default it postgres
+      PGDATA: '/var/lib/postgresql/data/pgdata'
+    networks:  # connect to the bridge
+      - postgresql_network
+    #command: ["postgres", "-c", "log_statement=all","-c", "log_destination=stderr"]
+    command: ["postgres"]
+
+  redis:
+    image: "redis:5.0.9-alpine3.11"
+    #command: redis-server --requirepass sOmE_sEcUrE_pAsS
+    command: redis-server --requirepass gauranga
+    volumes:
+      - $PWD/redis/redis-data:/var/lib/redis
+      - $PWD/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    networks:  # connect to the bridge
+      - redis_network
+
+      #ensure redis-server is running in root and change backed to respective
+      #pipenv run celery -A project worker --loglevel=debug #ensure redis-server is running in root and change backed to respective
+
+  celery_worker:
+    image: django:python-3.7.9-buster
+    environment:
+      - SQLPRINT=1
+      - DEBUG=0
+    volumes:
+      - type: bind
+        source: ./python_django/Django_project_and_venv
+        target: /home/simha/app
+    command:
+      - sh
+      - -c
+      - |
+        cd src
+        pipenv run celery -A project worker #ensure redis-server is running in root and change backed to respective
+    depends_on:  # wait for postgresql, redis to be "ready" before starting this service
+      - postgresql
+      - redis
+    networks:  # connect to the bridge
+      - postgresql_network
+      - redis_network
+
+
+  celery_beat:
+    image: django:python-3.7.9-buster
+    environment:
+      - SQLPRINT=1
+      - DEBUG=0
+    volumes:
+      - type: bind
+        source: ./python_django/Django_project_and_venv
+        target: /home/simha/app
+    command:
+      - sh
+      - -c
+      - |
+        cd src
+        pipenv run celery -A project beat #ensure redis-server is running in root and change backed to respective
+    depends_on:  # wait for postgresql, redis to be "ready" before starting this service
+      - postgresql
+      - redis
+      - celery_worker
+    networks:  # connect to the bridge
+      - postgresql_network
+      - redis_network
+
+
+  # ## webpage
+  # $ hostfolder="$(pwd)/python_django/Django_project_and_venv"
+  # dockerfolder="/home/simha/app"
+  # docker run -p 8888:8888 -it --rm -v ${hostfolder}:${dockerfolder} django:python-3.7.7-alpin3.11 pipenv run python basic_django/manage.py runserver 172.17.0.1:8888
+
+  nginx:
+    image: nginx:1.18.0-alpine
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx/with_out_domain/conf.d:/etc/nginx/conf.d
+      - ./python_django/Django_project_and_venv/src/staticfiles/:/staticfiles
+      # everytime we do changes in static files, then later do python manager.py collectstatic
+      # all the static files will be colleccted to this folder
+    depends_on:  # <-- wait for webapp to be "ready" before starting this service
+      - webapp
+    networks:  # connect to the bridge
+      - webapp_network
+
+  webapp:
+    #image: "django:python-3.7.7-alpin3.11-with-builddeps"
+    image: "django:python-3.7.9-buster"
+    environment:
+      - SQLPRINT=1
+      - DEBUG=1
+    volumes:
+      - type: bind
+        source: ./python_django/Django_project_and_venv
+        target: /home/simha/app
+      - type: bind # .cache of pipenv will avoid to download the .whl files again
+        source: ./python_django/Pipenv_cache_directory/.cache/pip-tools
+        target: /home/simha/.cache/pip-tools
+      - type: bind # .cache of pipenv will avoid to download the .whl files again
+        source: ./python_django/Pipenv_cache_directory/.cache/pipenv
+        target: /home/simha/.cache/pipenv
+      - type: bind # .cache of pip will avoid download whl files again
+        source: ./python_django/Pip_cache/.cache/pip
+        target: /home/simha/.cache/pip
+    depends_on:  # wait for celery, postgresql, redis to be "ready" before starting this service
+      - postgresql
+      - redis
+      - celery_worker
+      - celery_beat      
+    command:
+      - sh
+      - -c
+      - |
+        cd src
+        pipenv run gunicorn --workers=1 --threads=50 --bind 0.0.0.0:8888 project.wsgi:application
+    #pipenv run gunicorn --workers=2 --worker-class gevent --bind 0.0.0.0:8888 project.wsgi:application
+    # the above one fails. 502 bad gateway
+    # note this has be 0.0.0.0 else it cannot be accessed from outside server
+    networks:  # connect to the bridge
+      - postgresql_network
+      - redis_network
+      - webapp_network
+
+###   jupyter:
+###     # Jupyter needs buildversion: Error loading shared library libzmq.so.5
+###     image: "django:python-3.7.9-buster"
+###     #image: "django:python-3.7.7-alpin3.11"
+###     volumes:
+###       - type: bind
+###         source: ./python_django/Django_project_and_venv
+###         target: /home/simha/app
+###       - type: bind
+###         source: ../DO_NOT_DELETE_Jupyter_notebooks_on_server
+###         target: /home/simha/app/src/jupyter_non_git
+###       - type: bind # We want to also set some configurations for jupyter
+###         source: ./python_django/jupyter/.jupyter
+###         target: /home/simha/.jupyter
+###       - type: bind # .cache of pipenv will avoid to download the .whl files again
+###         source: ./python_django/Pipenv_cache_directory/.cache/pip-tools
+###         target: /home/simha/.cache/pip-tools
+###       - type: bind # .cache of pipenv will avoid to download the .whl files again
+###         source: ./python_django/Pipenv_cache_directory/.cache/pipenv
+###         target: /home/simha/.cache/pipenv
+###       - type: bind # .cache of pip will avoid download whl files again
+###         source: ./python_django/Pip_cache/.cache/pip
+###         target: /home/simha/.cache/pip
+###       # NOTE we have to import the .env from the host. This is for safety purpose 
+###     ports:
+###       - "8888:8888"
+###     depends_on:  # wait for celery, postgresql, redis to be "ready" before starting this service
+###       - webapp
+###     environment:
+###       - SQLPRINT=1
+###       - JUPYTER_PASS=0
+###       - DEBUG=0
+###     command:
+###       - sh
+###       - -c
+###       - |
+###         cd src
+###         pipenv run python manage.py shell_plus --notebook
+###     networks:  # connect to the bridge
+###       - postgresql_network
+###       - redis_network
+###       - webapp_network
+
+  # ##phppgadmin
+  # $ docker run --name='phppgadmin' --rm \
+  #         --publish=8800:80 \
+  #         -e PHP_PG_ADMIN_SERVER_HOST="127.0.0.1" \
+  #         dockage/phppgadmin:latest
+
+  phppgadmin:
+    image: "dockage/phppgadmin:latest"
+    ports:
+      - "8080:80"
+    environment:
+      PHP_PG_ADMIN_SERVER_HOST: 'postgresql'
+    depends_on:  # wait for postgresql, redis to be "ready" before starting this service
+      - postgresql
+      - webapp
+    networks:  # connect to the bridge
+      - postgresql_network
+
+networks:
+  webapp_network:
+    driver: bridge
+  postgresql_network:
+    driver: bridge
+  redis_network:
+    driver: bridge

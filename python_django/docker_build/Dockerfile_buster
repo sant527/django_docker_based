@@ -1,0 +1,32 @@
+FROM python:3.7.9-buster
+
+ENV PYTHONUNBUFFERED 1
+
+# If we use --no-cache in docker build then it will run all the layers
+# but we want only certain commands not to cache so we put this
+# and build using $ docker build -t django_testing --build-arg CACHEBUST=$(date +%s_%N) .
+ARG CACHEBUST=1
+
+# create a user with userid 1000 and gid 100
+RUN useradd -u 1000 -g 100 -m simha
+
+# change permissions of /home/simha to 1000:100
+RUN chown 1000:100 /home/simha
+
+RUN pip install pipenv
+
+ENV PIPENV_VENV_IN_PROJECT 1
+
+RUN pip3 install virtualenv 
+
+WORKDIR /home/simha/app
+
+# WORKDIR will create a folder with root privilages so change it to simha:users
+# Note: when we do -v /host/folder:/home/simha/app then whatever the user:group
+# /host/folder is there /home/simha/app will become that
+# this is required only when are doing some files creation without bind mount
+# but for clearity we will do chown
+# ALSO chown for a root folder can be done by a root user only
+RUN chown 1000:100 /home/simha/app
+
+USER simha
