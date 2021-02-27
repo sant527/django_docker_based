@@ -1,3 +1,13 @@
+# AIM of this project. Using docker create a simple webpage for login and logout
+
+for creating users and others use admin
+
+
+<img src="./images/2021-02-27_17-54.png" width="300px" height="" alt="">
+
+
+<img src="./images/Db0OBgBMLn.png" width="300px" height="" alt="">
+
 # SERVER BOTTLE NECK1: IMPORTANT: DOCKER SETUP LOG ROTATION ELSE THE LOGS FILES WILL GROW AND LEFT WITH NO SPACE
 
 >By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format.
