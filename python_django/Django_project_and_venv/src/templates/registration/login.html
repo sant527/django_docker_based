@@ -1,0 +1,27 @@
+{% extends "registration/base.html" %}
+{% load static %}
+{# Load the tag library #}
+{% load bootstrap4 %}
+
+{% block content %}
+<div class="wrapper">
+    <div class="auth-content">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <img class="brand" src="{% static 'img/bootstraper-logo.png' %}" alt="bootstraper logo">
+                </div>
+                <h6 class="mb-4 text-muted">Login to your account</h6>
+                <form method="post" class="text-left">
+					{% csrf_token %}
+					{% bootstrap_form form %}
+	                <button class="btn btn-primary shadow-2 mb-4">Login</button>
+                </form>
+                <p class="mb-2 text-muted">Forgot password? <a href="forgot-password.html">Reset</a></p>
+                <p class="mb-0 text-muted">Don't have account yet? <a href="signup.html">Signup</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+

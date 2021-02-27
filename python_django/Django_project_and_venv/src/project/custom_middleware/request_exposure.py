@@ -1,4 +1,4 @@
-from boiler import settings
+from project import settings
 
 def RequestExposerMiddleware(get_response):
     def middleware(request):

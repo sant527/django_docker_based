@@ -1,0 +1,50 @@
+{% load static %}
+
+<!DOCTYPE html>
+<!-- 
+* Bootstrap Simple Admin Template
+* Version: 2.0
+* Author: Alexis Luna
+* Copyright 2020 Alexis Luna
+* Website: https://github.com/alexis-luna/bootstrap-simple-admin-template
+-->
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Dashboard</title>
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'vendor/fontawesome/css/fontawesome.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'vendor/fontawesome/css/solid.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'vendor/fontawesome/css/brands.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'vendor/flagiconcss/css/flag-icon.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/master.css' %}" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="wrapper">
+    	{% include "navmenu_side.html" %}
+    	<div id="body" class="active">
+    		{% include "navmenu_top.html" %}
+            <div class="content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12 page-header">
+                            <div class="page-pretitle">Overview</div>
+                            <h2 class="page-title">Dashboard</h2>
+                        </div>
+                    </div>
+                    {% block content %}{% endblock content%}
+                </div>
+            </div>
+    	</div>
+
+	</div>
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>

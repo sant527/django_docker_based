@@ -24,6 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # https://stackoverflow.com/a/62119475
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 
+# During launch jupyter notebook server will show the address and port and token
+# that you will need to use as URL to access it.
+
+NOTEBOOK_ARGUMENTS = [
+    '--ip', '0.0.0.0',
+    '--port', '8888'
+]
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
@@ -59,6 +68,7 @@ INSTALLED_APPS = [
 
     # third party installed packages
     'django_extensions',
+    'bootstrap4',
 ]
 
 
@@ -92,7 +102,7 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -163,7 +173,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'index'
+LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
 # django_heroku.settings(locals())
